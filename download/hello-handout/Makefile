@@ -1,8 +1,8 @@
 # Student makefile for the Hello Lab
 all: 
-	gcc hello.c -o hello
+	gcc test_case.c -o test_case
 
 clean:
-	rm -rf *~ hello
+	rm -rf *~ test_case
 
 

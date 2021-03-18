@@ -17,8 +17,8 @@ fi
 
 # Run the code
 
-result=$(./hello)
-status=$?
+result=$(./test_case)
+echo $?
 read -p "Press Key"
 if [ ${status} -eq 0 ]; then
     

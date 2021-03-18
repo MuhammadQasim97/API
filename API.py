@@ -102,9 +102,6 @@ class getSubmission(Resource):
 
     def worker(self,file,id):
         BASE="http://127.0.0.1:5000/"
-        # response =requests.get(BASE + "getsubmission/"+id)
-        # data=response.json()
-        # print(data)
         print(file)
         current_dir=os.getcwd()
         file_from=os.getcwd()+"\\data\\"+file
@@ -114,7 +111,6 @@ class getSubmission(Resource):
 
         shutil.copy(file_from, file_to)
         print("Downloading File")
-        #os.system("gcc "+file_run)
         os.system("cd download &&  echo 'Downloading tar file' && driver.sh && echo 'Extracting tar file' &&  echo 'Moving Content to system file' && @type %s > hello-handout/hello.c && driver.sh" %file)
         import subprocess
         output = os.system("echo 'Executing the job' && cd download/hello-handout && driver.sh ../%s && echo 'Score saved in output file'" %file)

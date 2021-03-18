@@ -235,6 +235,19 @@ def get_all_submissions():
 
 
 
+@app.route('/user_login', methods = ['POST'])
+def user_login():
+    conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
+    email=(request.form['email'])
+    password=request.form['password']
+    query="select * from users WHERE email={email} and users.encrypted_password=PASSWORD({password})"
+    if (len(query)==1):
+        return "User existed"
+    else:
+        return "your email or password is incorrect"
+
+
+
 
 #to make an assignment
 @app.route('/assessments_register', methods = ['POST'])

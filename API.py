@@ -236,8 +236,10 @@ def user_login():
     conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
     email=(request.form['email'])
     password=request.form['password']
-    query="select * from users WHERE email={email} and users.encrypted_password=PASSWORD({password})"
-    if (len(query)==1):
+    myCursor=conn.cursor()
+    myCursor.execute("""select * from users WHERE email={email} and users.encrypted_password=PASSWORD({password});""")
+    records=myCursor.fetchall()
+    if (len(records)>=1):
         return "User existed"
     else:
         return "your email or password is incorrect"

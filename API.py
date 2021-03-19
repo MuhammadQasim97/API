@@ -230,6 +230,15 @@ def get_all_submissions():
 
 
 
+@app.route('/get_courses', methods = ['GET'])
+def get_courses():
+    conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
+    myCursor=conn.cursor()
+    myCursor.execute("""select * from courses;""")
+    records=myCursor.fetchall()
+    return{"data":records}
+
+
 
 @app.route('/user_login', methods = ['POST'])
 def user_login():
@@ -237,12 +246,12 @@ def user_login():
     email=(request.form['email'])
     password=request.form['password']
     myCursor=conn.cursor()
-    myCursor.execute("""select * from users WHERE email={email} and users.encrypted_password=PASSWORD({password});""")
+    myCursor.execute("""select * from users WHERE email='%s' and users.encrypted_password=PASSWORD('%s');""" % (email,password))
     records=myCursor.fetchall()
     if (len(records)>=1):
-        return "User existed"
+        return {"data":records}
     else:
-        return "your email or password is incorrect"
+        return {"data":False}
 
 
 
@@ -277,6 +286,27 @@ def assessments_register():
     conn.commit()
     return {"data":"done"}
 
+
+
+
+@app.route('/add_course', methods = ['POST'])
+def add_course():
+  #storing tar
+    courseName=(request.form['CourseName'])
+    teacherid=(request.form['teacher'])
+    startDate=(request.form['startDate'])
+    endDate=(request.form['endDate'])
+    semester=request.form['semester']
+    conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
+    myCursor=conn.cursor()
+    
+
+    myCursor.execute("""insert into course (name,semester,start_date,end_date) values ('%s','%s','%s','%s')"""%(courseName,semester,startDate,endDate))
+    assessments_id=myCursor.lastrowid
+    myCursor.execute("""insert into  course (filename,mime_type,course_id,assessment_id) values ('%s','%s','%s','%s')"""%(filename,'tar',1,assessments_id))
+    print(assessments_id)
+    conn.commit()
+    return {"data":"done"}
 
 
 #to submit a solution

@@ -100,18 +100,20 @@ api.add_resource(HelloWorld,"/helloworld/<int:id>")
 
 class getSubmission(Resource):
 
-    def worker(self,file,id,assessment_id):
+    def worker(self,file,id,test_case):
         BASE="http://127.0.0.1:5000/"
         print(file)
         current_dir=os.getcwd()
+        file_test_case=os.getcwd()+"\\download\\test-cases\\"+test_case
         file_from=os.getcwd()+"\\data\\"+file
         file_to=os.getcwd()+"\\download\\"
         file_run=os.getcwd()+"\\download\\"+file
         print(file_run)
 
         shutil.copy(file_from, file_to)
+        shutil.copy(file_test_case,file_to)
         print("Downloading File")
-        os.system("cd download &&  echo 'Downloading tar file' && driver.sh && echo 'Extracting tar file' &&  echo 'Moving Content to system file' && @type %s > work-room/hello.c && driver.sh" %file)
+        os.system("cd download &&  echo 'Downloading tar file' && driver.sh && echo 'Extracting tar file' &&  echo 'Moving Content to system file' && @type %s > work-room/hello.c && @type %s > work-room/test_case.c && driver.sh" %(file,test_case))
         import subprocess
         output = os.system("echo 'Executing the job' && cd download/work-room && driver.sh ../%s && echo 'Score saved in output file'" %file)
 
@@ -134,7 +136,7 @@ class getSubmission(Resource):
 
         myCursor.execute("""select filename,assessment_id from submissions where id=%s;""", id)
         data = myCursor.fetchall()
-
+        print(data)
         for row in data:
             ext=(row[0].split(".")[1])
             assessment_id=row[1]
@@ -148,11 +150,12 @@ class getSubmission(Resource):
             extTest=row[0].split(".")[1]
             
         file = "submission-" + str(id) +"."+ str(ext)
-        test_case = "test-case-" + str(id) +"."+ str(extTest)
+        test_case = "test-case-" + str(assessment_id) +"."+ str(extTest)
         print(file)
         conn.commit()
         conn.close()
         file_to_move = os.getcwd() + "\\data\\" + file
+        print(test_case)
         response=self.worker(file,id,test_case)
 
         return {"data": response}

@@ -20,7 +20,7 @@ import json
 app = Flask(__name__)
 api = Api(app)
 CORS(app)
-UPLOAD_FOLDER=os.getcwd()+"/download"
+UPLOAD_FOLDER=os.getcwd()+"/download/test-cases"
 SOLUTION_FOLDER=os.getcwd()+"/data"
 class getAssessments(Resource):
     def get(self, id):
@@ -100,7 +100,7 @@ api.add_resource(HelloWorld,"/helloworld/<int:id>")
 
 class getSubmission(Resource):
 
-    def worker(self,file,id):
+    def worker(self,file,id,assessment_id):
         BASE="http://127.0.0.1:5000/"
         print(file)
         current_dir=os.getcwd()
@@ -111,11 +111,11 @@ class getSubmission(Resource):
 
         shutil.copy(file_from, file_to)
         print("Downloading File")
-        os.system("cd download &&  echo 'Downloading tar file' && driver.sh && echo 'Extracting tar file' &&  echo 'Moving Content to system file' && @type %s > hello-handout/hello.c && driver.sh" %file)
+        os.system("cd download &&  echo 'Downloading tar file' && driver.sh && echo 'Extracting tar file' &&  echo 'Moving Content to system file' && @type %s > work-room/hello.c && driver.sh" %file)
         import subprocess
-        output = os.system("echo 'Executing the job' && cd download/hello-handout && driver.sh ../%s && echo 'Score saved in output file'" %file)
+        output = os.system("echo 'Executing the job' && cd download/work-room && driver.sh ../%s && echo 'Score saved in output file'" %file)
 
-        with open('download/hello-handout/output.txt','r') as file2:
+        with open('download/work-room/output.txt','r') as file2:
             countriesStr = file2.read()
 
         countriesStr=countriesStr.strip('\n')
@@ -132,21 +132,28 @@ class getSubmission(Resource):
         myCursor = conn.cursor()
         
 
-        myCursor.execute("""select filename from submissions where id=%s;""", id)
+        myCursor.execute("""select filename,assessment_id from submissions where id=%s;""", id)
         data = myCursor.fetchall()
 
         for row in data:
             ext=(row[0].split(".")[1])
+            assessment_id=row[1]
             # sqlFilename=row['filename']
             # sqlFilename.split(".")
             # print(sqlFilename)
+        myCursor.execute("""select filename from attachments where assessment_id=%s;""", assessment_id)
+        data = myCursor.fetchall()
+
+        for row in data:
+            extTest=row[0].split(".")[1]
             
         file = "submission-" + str(id) +"."+ str(ext)
+        test_case = "test-case-" + str(id) +"."+ str(extTest)
         print(file)
         conn.commit()
         conn.close()
         file_to_move = os.getcwd() + "\\data\\" + file
-        response=self.worker(file,id)
+        response=self.worker(file,id,test_case)
 
         return {"data": response}
 
@@ -260,17 +267,12 @@ def user_login():
 @app.route('/assessments_register', methods = ['POST'])
 def assessments_register():
   #storing tar
-    file = request.files['tar'] 
-    if not os.path.isdir(UPLOAD_FOLDER):
-        os.mkdir(UPLOAD_FOLDER)
-    filename=secure_filename(file.filename)
-    destination="/".join([UPLOAD_FOLDER, filename])
-    file.save(destination)
+   
 #storing make
-    file2 = request.files['make']
-    filename2=secure_filename(file2.filename)
-    destination="/".join([UPLOAD_FOLDER, filename2])
-    file2.save(destination)
+    # file2 = request.files['make']
+    # filename2=secure_filename(file2.filename)
+    # destination="/".join([UPLOAD_FOLDER, filename2])
+    # file2.save(destination)
     x=(request.form['name'])
     course=(request.form['course'])
     deadline=(request.form['deadline'])
@@ -281,7 +283,14 @@ def assessments_register():
 
     myCursor.execute("""insert into assessments (name,course_id,grading_deadline) values ('%s','%s','%s')"""%(x,1,deadline))
     assessments_id=myCursor.lastrowid
-    myCursor.execute("""insert into attachments (filename,mime_type,course_id,assessment_id) values ('%s','%s','%s','%s')"""%(filename,'tar',1,assessments_id))
+    file = request.files['test_case'] 
+    if not os.path.isdir(UPLOAD_FOLDER):
+        os.mkdir(UPLOAD_FOLDER)
+    filename=secure_filename(file.filename)
+    ext=filename.split(".")[1]
+    destination="/".join([UPLOAD_FOLDER,  "test-case-{}.{}".format(str(assessments_id),ext)])
+    file.save(destination)
+    myCursor.execute("""insert into attachments (filename,mime_type,course_id,assessment_id) values ('%s','%s','%s','%s')"""%(filename,ext,1,assessments_id))
     print(assessments_id)
     conn.commit()
     return {"data":"done"}
@@ -292,8 +301,9 @@ def assessments_register():
 @app.route('/add_course', methods = ['POST'])
 def add_course():
   #storing tar
-    courseName=(request.form['CourseName'])
-    teacherid=(request.form['teacher'])
+    courseName=(request.form['courseName'])
+    #teacherid=(request.form['teacher'])
+    teacherid=1
     startDate=(request.form['startDate'])
     endDate=(request.form['endDate'])
     semester=request.form['semester']
@@ -301,10 +311,9 @@ def add_course():
     myCursor=conn.cursor()
     
 
-    myCursor.execute("""insert into course (name,semester,start_date,end_date) values ('%s','%s','%s','%s')"""%(courseName,semester,startDate,endDate))
-    assessments_id=myCursor.lastrowid
-    myCursor.execute("""insert into  course (filename,mime_type,course_id,assessment_id) values ('%s','%s','%s','%s')"""%(filename,'tar',1,assessments_id))
-    print(assessments_id)
+    myCursor.execute("""insert into courses (name,semester,start_date,end_date) values ('%s','%s','%s','%s')"""%(courseName,semester,startDate,endDate))
+    course_id=myCursor.lastrowid
+    myCursor.execute("""insert into  course_user_data (course_id,instructor,user_id) values ('%s','%s','%s')"""%(course_id,teacherid,teacherid))
     conn.commit()
     return {"data":"done"}
 

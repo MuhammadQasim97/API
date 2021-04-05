@@ -156,7 +156,8 @@ class getSubmission(Resource):
         conn.close()
         file_to_move = os.getcwd() + "\\data\\" + file
         print(test_case)
-        response=self.worker(file,id,test_case)
+        #response=self.worker(file,id,test_case)
+        response={"file":file,"id":"id","test_case":test_case}
 
         return {"data": response}
 

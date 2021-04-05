@@ -39,41 +39,39 @@ def markSubmission():
     BASE = "http://127.0.0.1:5000/"
 
     response = requests.get(BASE + "getsubmission/" + id)
-    data = response.json()
-    print(data)
-    current_dir = os.getcwd()
-    file_from = os.getcwd() + "\\data\\" + data['data']
-    file_to = os.getcwd() + "\\download\\"
-    file_run = os.getcwd() + "\\download\\" + data['data']
+    req=response.json()
+    data=req['data']
+    test_case=data['test_case']
+    #id2=data['id']
+    file=data['file']
+    current_dir=os.getcwd()
+    file_test_case=os.getcwd()+"\\download\\test-cases\\"+test_case
+    file_from=os.getcwd()+"\\data\\"+file
+    file_to=os.getcwd()+"\\download\\"
+    file_run=os.getcwd()+"\\download\\"+file
+    print(file_run)
 
     shutil.copy(file_from, file_to)
+    shutil.copy(file_test_case,file_to)
     print("Downloading File")
-    # os.system("gcc "+file_run)
-    os.system(
-        "cd download &&  echo 'Downloading tar file' && driver.sh && echo 'Extracting tar file' &&  echo 'Moving Content to system file' && @type %s > hello-handout/hello.c && driver.sh" %
-        data['data'])
+    os.system("cd download &&  echo 'Downloading tar file' && driver.sh && echo 'Extracting tar file' &&  echo 'Moving Content to system file' && @type %s > work-room/hello.c && @type %s > work-room/test_case.c && driver.sh" %(file,test_case))
     import subprocess
-    output = os.system(
-        "echo 'Executing the job' && cd download/hello-handout && driver.sh ../%s && echo 'Score saved in output file'" %
-        data['data'])
+    output = os.system("echo 'Executing the job' && cd download/work-room && driver.sh ../%s && echo 'Score saved in output file'" %file)
 
-    with open('download/hello-handout/output.txt', 'r') as file:
-        countriesStr = file.read()
+    with open('download/work-room/output.txt','r') as file2:
+        countriesStr = file2.read()
 
-    countriesStr = countriesStr.strip('\n')
+    countriesStr=countriesStr.strip('\n')
 
-    response = requests.put(BASE + "getscores/%s" % id, {'score': str(countriesStr)})
-    print(response.json())
+    response =requests.put(BASE + "getscores/%s" %id,{'score':str(countriesStr)})
+    
+    print (response.json())
 
 
 print("Choose one option")
-print("1 is to get all submissions")
-print("2 is to get make/tar files")
-print("3 is to mark a submission")
+print("1 is Mark submissions")
 opt = input()
 if opt == '1':
-    getAllSubmissions()
-elif opt == '2':
-    getMimeFiles()
-elif opt=='3':
     markSubmission()
+
+    

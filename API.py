@@ -5,8 +5,10 @@ from flask_cors import CORS
 import pymysql
 import mysql.connector
 import os
+import tkinter
 from datetime import date
-from datetime import datetime
+from tkinter import *
+#from datetime import datetimef
 import requests
 import shutil
 import subprocess
@@ -15,6 +17,8 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures import  FileStorage
 from json import dumps
 import json
+from tkinter import filedialog
+
 
 
 app = Flask(__name__)
@@ -278,7 +282,6 @@ def assessments_register():
     # destination="/".join([UPLOAD_FOLDER, filename2])
     # file2.save(destination)
     x=(request.form['name'])
-    course=(request.form['course'])
     deadline=(request.form['deadline'])
     print(deadline)
     conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
@@ -321,28 +324,56 @@ def add_course():
     conn.commit()
     return {"data":"done"}
 
+#to submit a solution
+# @app.route('/submitSolution', methods = ['POST'])
+
+# def submitSolution():
+#     file = request.files['solution']
+#     filename2=file.filename 
+    # ext=filename2.split(".")[1]
+    # assessment_id= request.form['assessment_id']
+    # conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
+    # myCursor=conn.cursor()
+    # query="""INSERT INTO `submissions` ( course_user_datum_id, assessment_id, filename,  submitted_by_id) VALUES ('{}','{}','{}','{}')""".format(1,assessment_id,str(filename2),1)
+    # myCursor.execute(query)
+    # sub_id=myCursor.lastrowid
+    # print("submission-{}".format(sub_id))
+    # conn.commit()
+    # # #myCursor.execute("""insert into attachments (filename,mime_type,course_id,assessment_id) values ('%s','%s','%s','%s')"""%(filename,'tar',1,assessments_id))
+    # # print(assessments_id)
+    # destination="/".join([SOLUTION_FOLDER, "submission-{}.{}".format(str(sub_id),ext)])
+    # file.save(destination)
+    # return {"data":ext}
+
+
 
 #to submit a solution
 @app.route('/submitSolution', methods = ['POST'])
 
 def submitSolution():
-    file = request.files['solution']
-    filename2=file.filename 
-    ext=filename2.split(".")[1]
-    assessment_id= request.form['assessment_id']
+    student_name=input("Enter Your Name")
+    print("Now select the solution File")
+    file_name=filedialog.askopenfilename(initialdir='/documents',title='Select A File',filetypes=(("cpp files","*.cpp"),("all types","*.*")))
+    # file = request.files['solution']
+    # filename2=file.filename 
+    # ext=filename2.split(".")[1]
+    # assessment_id= request.form['assessment_id']
     conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
     myCursor=conn.cursor()
-    query="""INSERT INTO `submissions` ( course_user_datum_id, assessment_id, filename,  submitted_by_id) VALUES ('{}','{}','{}','{}')""".format(1,assessment_id,str(filename2),1)
+    query="""INSERT INTO `submissions` (student_name, filename) VALUES ('{}','{}')""".format(str(student_name),str(file_name))
     myCursor.execute(query)
-    sub_id=myCursor.lastrowid
-    print("submission-{}".format(sub_id))
+    
+    # sub_id=myCursor.lastrowid
+    # print("submission-{}".format(sub_id))
     conn.commit()
-    # #myCursor.execute("""insert into attachments (filename,mime_type,course_id,assessment_id) values ('%s','%s','%s','%s')"""%(filename,'tar',1,assessments_id))
-    # print(assessments_id)
-    destination="/".join([SOLUTION_FOLDER, "submission-{}.{}".format(str(sub_id),ext)])
-    file.save(destination)
-    return {"data":ext}
+    print("Upload Successful")
+    # # #myCursor.execute("""insert into attachments (filename,mime_type,course_id,assessment_id) values ('%s','%s','%s','%s')"""%(filename,'tar',1,assessments_id))
+    # # print(assessments_id)
+    # destination="/".join([SOLUTION_FOLDER, "submission-{}.{}".format(str(sub_id),ext)])
+    # file.save(destination)
+    # return {"data":ext}
 
 
+submitSolution()
 if __name__ == "__main__":
     app.run()

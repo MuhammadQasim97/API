@@ -108,7 +108,14 @@ class getSubmission(Resource):
         file_from=os.getcwd()+"\\data\\"+file
         file_to=os.getcwd()+"\\download\\"
         file_run=os.getcwd()+"\\download\\"+file
-        print(file_run)
+        file2 = open(file_from, "r")
+        line_count = 0
+        for line in file:
+            if line != "\n":
+                line_count += 1
+        file2.close()
+
+        print(line_count)        
 
         shutil.copy(file_from, file_to)
         shutil.copy(file_test_case,file_to)
@@ -122,7 +129,7 @@ class getSubmission(Resource):
 
         countriesStr=countriesStr.strip('\n')
 
-        response =requests.put(BASE + "getscores/%s" %id,{'score':str(countriesStr)})
+        response =requests.put(BASE + "getscores/%s" %id,{'score':str(countriesStr),'lineOfCode':line_count})
         
         return (response.json())
 
@@ -156,7 +163,7 @@ class getSubmission(Resource):
         conn.close()
         file_to_move = os.getcwd() + "\\data\\" + file
         print(test_case)
-        #response=self.worker(file,id,test_case)
+        response=self.worker(file,id,test_case)
         response={"file":file,"id":"id","test_case":test_case}
 
         return {"data": response}
@@ -169,6 +176,8 @@ api.add_resource(getSubmission, "/getsubmission/<int:id>")
 
 score_data = reqparse.RequestParser()
 score_data.add_argument("score", type=str, help="Score not provided", required=True)
+score_data.add_argument("lineOfCode", type=int, help="Line of Code", required=True)
+
 
 
 class getScores(Resource):
@@ -179,6 +188,8 @@ class getScores(Resource):
     def put(self, id):
         scores = score_data.parse_args()
         score = scores['score']
+        line_count=scores['lineOfCode']
+        print(line_count)
         submission_id = id
         conn = pymysql.connect(host="localhost", user="root", password="", db="autolab_development")
         myCursor = conn.cursor()
@@ -186,10 +197,10 @@ class getScores(Resource):
 
         if myCursor.rowcount <= 0:
             
-            myCursor.execute("""update submissions set autoresult='%s' where id='%s';""" % (score,  submission_id))
+            myCursor.execute("""update submissions set autoresult='%s', line_of_code='%s' where id='%s';""" % (score,line_count,  submission_id))
             print("""update submissions set autoresult='%s' where id='%s';""" % (score,  submission_id))
         else:
-            myCursor.execute("""update submissions set autoresult='%s' where id='%s';""" % (score,  submission_id))
+            myCursor.execute("""update submissions set autoresult='%s', line_of_code='%s' where id='%s';""" % (score,line_count,  submission_id))
             print("Score Updated")
 
         conn.commit()
@@ -257,8 +268,10 @@ def user_login():
     email=(request.form['email'])
     password=request.form['password']
     myCursor=conn.cursor()
+    
     myCursor.execute("""select * from users WHERE email='%s' and users.encrypted_password=PASSWORD('%s');""" % (email,password))
     records=myCursor.fetchall()
+    print(records)
     if (len(records)>=1):
         return {"data":records}
     else:

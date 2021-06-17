@@ -37,8 +37,7 @@ class getAssessments(Resource):
             print(x[2])
             send.append(x)
 
-        print(send)
-
+        
         return {"data": send}
 
 api.add_resource(getAssessments, "/getassessments/<int:id>")

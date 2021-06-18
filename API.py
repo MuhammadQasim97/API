@@ -234,7 +234,7 @@ def user_register():
 def get_all_submissions():
     conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
     myCursor=conn.cursor()
-    myCursor.execute("""select * from submissions;""")
+    myCursor.execute("""SELECT assessments.*, assessment_user_data.assessment_id FROM assessments INNER JOIN assessment_user_data ON assessment_user_data.assessment_id=assessments.id where assessment_user_data.group_id='6' """ )
     records=myCursor.fetchall()
     return{"data":records}
 

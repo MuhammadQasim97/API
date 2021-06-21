@@ -230,14 +230,21 @@ def user_register():
     conn.close()
     return{"data":response}
     
-@app.route('/get_all_submissions', methods = ['GET'])
-def get_all_submissions():
+@app.route('/get_all_submissions/<int:id>', methods = ['GET'])
+def get_all_submissions(id):
     conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
     myCursor=conn.cursor()
     myCursor.execute("""SELECT assessments.*, assessment_user_data.assessment_id FROM assessments INNER JOIN assessment_user_data ON assessment_user_data.assessment_id=assessments.id where assessment_user_data.group_id='6' """ )
     records=myCursor.fetchall()
     return{"data":records}
 
+@app.route('/studentSubmission', methods = ['GET'])
+def studentSubmission():
+    conn=pymysql.connect(host="localhost",user="root",password="",db="autolab_development")
+    myCursor=conn.cursor()
+    myCursor.execute("""SELECT * FROM `submissions` where submitted_by_id='1' """ )
+    records=myCursor.fetchall()
+    return{"data":records}
 
 
 @app.route('/get_courses', methods = ['GET'])
